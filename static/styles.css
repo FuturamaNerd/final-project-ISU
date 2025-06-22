@@ -1,0 +1,64 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#map-wrapper {
+  padding: 10%;
+  display: flex;
+  justify-content: center;
+}
+
+#map {
+  height: 60vh;
+  width: 80%;
+}
+
+.card{
+  width: 15rem;
+}
+
+h2 {
+  border-radius: 5%;
+  padding: 8px;
+}
+.bg-africa h2 {
+  background-color: #26b806;
+}
+
+.bg-africa .card {
+  background-color: rgba(184, 0, 6, 0.5); /* inverted: red tint */
+}
+
+.bg-americas h2 {
+  background-color: #b81106;
+}
+
+.bg-americas .card {
+  background-color: rgba(38, 72, 250, 0.5); /* inverted: cyan/blue */
+}
+
+.bg-asia h2 {
+  background-color: #0f0f0f;
+}
+
+.bg-asia .card {
+  background-color: rgba(240, 240, 240, 0.5); /* inverted: light gray */
+}
+
+.bg-europe h2 {
+  background-color: #b8a006;
+}
+
+.bg-europe .card {
+  background-color: rgba(72, 95, 249, 0.5); /* inverted: purplish blue */
+}
+
+.bg-oceania > h2 {
+  background-color: #061eb8;
+}
+
+.bg-oceania .card {
+  background-color: rgba(249, 225, 72, 0.5); /* inverted: yellow */
+}
