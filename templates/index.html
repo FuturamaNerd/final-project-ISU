@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>sandbox</title>
+    <title>News World - Global News Map</title>
     <meta charset="utf-8" />
     <!--leaflet-->
     <link
@@ -21,20 +21,77 @@ integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuH
     </div>
   <body class="bg-primary">
    <div class="container mt-4"> 
+    
     <div class="d-flex flex-wrap justify-content-around gap-4">
-      {% for story in news_stories %}
-      <div class="text-center {{ get_continent_style(story.continent) }}">
-        <h2 class="text-white">{{ story.continent }}</h2>
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">{{ story.title }}</h5>
-            <p class="card-text">{{ story.country }}</p>
-            <a href="{{ story.url }}" class="btn btn-primary" target="_blank">Read More</a>
-          </div>
+    <!-- Region 1 -->
+    <div class="text-center bg-americas">
+      <h2 class="text-white">Americas</h2>
+      <div class="card">
+        <div class="card-body">
+          {% if real_story and real_story.source_country in ['US', 'CA', 'BR', 'MX', 'AR', 'CL', 'CO', 'PE', 'VE'] %}
+          <h5 class="card-title">{{ real_story.title[:60] }}{% if real_story.title|length > 60 %}...{% endif %}</h5>
+          <p class="card-text">{{ real_story.description[:100] }}{% if real_story.description|length > 100 %}...{% endif %}</p>
+          <small class="text-muted">{{ real_story.source.name if real_story.source else 'Unknown' }} | {{ real_story.source_country }}</small>
+          {% if real_story.url %}
+          <br><a href="{{ real_story.url }}" target="_blank" class="btn btn-sm btn-primary mt-2">Read More</a>
+          {% endif %}
+          {% else %}
+          <h5 class="card-title">Title</h5>
+          <p class="card-text">Snippet</p>
+          {% endif %}
         </div>
       </div>
-      {% endfor %}
     </div>
+
+    <!-- Region 2 -->
+    <div class="text-center bg-africa">
+      <h2 class="text-white">Africa</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Title</h5>
+          <p class="card-text">Snippet</p>
+            {# add link later #}
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 3 -->
+    <div class="text-center bg-asia">
+      <h2 class="text-white">Asia</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Title</h5>
+          <p class="card-text">Snippet</p>
+            {# add link later #}
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 4 -->
+    <div class="text-center bg-europe">
+      <h2 class="text-white">Europe</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Title</h5>
+          <p class="card-text">Snippet</p>
+            {# add link later #}
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 5 -->
+    <div class="text-center bg-oceania">
+      <h2 class="text-white">Oceania</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Title</h5>
+          <p class="card-text">Snippet</p>
+          {# add link later #}
+          
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
     <script
@@ -49,6 +106,24 @@ integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuH
             zoomOffset: -1,
             attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> contributors'
         }).addTo(map);
+
+        // Add marker for real news story
+        {% if real_story and country_coords %}
+        var newsData = {
+            title: {{ real_story.title | tojson | safe }},
+            country: {{ real_story.source_country | tojson | safe }},
+            source: {{ (real_story.source.name if real_story.source else 'Unknown') | tojson | safe }},
+            url: {{ real_story.url | tojson | safe }},
+            coords: [{{ country_coords[0] }}, {{ country_coords[1] }}]
+        };
+        
+        var marker = L.marker(newsData.coords).addTo(map);
+        marker.bindPopup(`
+            <strong>${newsData.title}</strong><br>
+            <small>${newsData.country} - ${newsData.source}</small><br>
+            <a href="${newsData.url}" target="_blank">Read Article</a>
+        `);
+        {% endif %}
     </script>
    <script src="{{ url_for('static', filename='script.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
