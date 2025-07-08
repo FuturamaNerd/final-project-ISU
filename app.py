@@ -1,11 +1,17 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify, request
 from flask_pymongo import PyMongo
+import sqlite3
 from datetime import datetime
+from utility.ner_processor import ner_processor
+from blueprints import init_app
 
 #flask instance
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/news_world_database"
 mongo = PyMongo(app)
+
+# Initialize blueprints
+init_app(app, mongo)
 
 #route decorator
 @app.route('/')
@@ -39,6 +45,24 @@ def index():
             real_story = sample_story
             real_story['_id'] = str(result.inserted_id)
             print(f"✅ Created sample story with ID: {result.inserted_id}")
+        
+        # Process with NER if not already processed
+        if 'extracted_locations' not in real_story:
+            real_story = ner_processor.process_article(real_story)
+            # Update the database with NER results
+            if '_id' in real_story:
+                article_id = real_story.pop('_id', None)
+                if article_id and not isinstance(article_id, str):
+                    mongo.db.news_by_location.update_one(
+                        {'_id': article_id},
+                        {'$set': {
+                            'extracted_locations': real_story.get('extracted_locations', []),
+                            'location_count': real_story.get('location_count', 0),
+                            'primary_location': real_story.get('primary_location'),
+                            'ner_processed_at': datetime.utcnow()
+                        }}
+                    )
+                    real_story['_id'] = str(article_id)
         
         # Convert MongoDB ObjectId to string
         if '_id' in real_story and not isinstance(real_story['_id'], str):
@@ -149,6 +173,143 @@ def asia_news():
 def africa_news():
     """Direct route for Africa news."""
     return continent_news('Africa')
+
+@app.route('/api/articles/locations')
+def get_articles_with_locations():
+    """API endpoint to get articles with location information."""
+    try:
+        # Get articles that have been processed with NER
+        articles = list(mongo.db.news_by_location.find({'extracted_locations': {'$exists': True}}))
+        
+        # Convert ObjectIds to strings
+        for article in articles:
+            article['_id'] = str(article['_id'])
+        
+        return jsonify({
+            'success': True,
+            'articles': articles,
+            'count': len(articles)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/articles/search')
+def search_articles_by_location():
+    """API endpoint to search articles by location."""
+    location = request.args.get('location', '').strip()
+    
+    if not location:
+        return jsonify({
+            'success': False,
+            'error': 'Location parameter is required'
+        }), 400
+    
+    try:
+        # Get all articles
+        articles = list(mongo.db.news_by_location.find())
+        
+        # Process articles if needed
+        processed_articles = []
+        for article in articles:
+            if 'extracted_locations' not in article:
+                processed_article = ner_processor.process_article(article)
+                processed_articles.append(processed_article)
+            else:
+                processed_articles.append(article)
+        
+        # Find matching articles
+        matching_articles = ner_processor.find_articles_by_location(processed_articles, location)
+        
+        # Convert ObjectIds to strings
+        for article in matching_articles:
+            if '_id' in article:
+                article['_id'] = str(article['_id'])
+        
+        return jsonify({
+            'success': True,
+            'articles': matching_articles,
+            'count': len(matching_articles),
+            'search_term': location
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/ner/process')
+def process_articles_with_ner():
+    """API endpoint to process all articles with NER."""
+    try:
+        # Get all articles
+        articles = list(mongo.db.news_by_location.find())
+        
+        if not articles:
+            return jsonify({
+                'success': False,
+                'error': 'No articles found in database'
+            }), 404
+        
+        # Process articles with NER
+        processed_articles = ner_processor.process_multiple_articles(articles)
+        
+        # Update articles in database
+        updated_count = 0
+        for article in processed_articles:
+            article_id = article.pop('_id', None)
+            if article_id:
+                result = mongo.db.news_by_location.update_one(
+                    {'_id': article_id},
+                    {'$set': {
+                        'extracted_locations': article.get('extracted_locations', []),
+                        'location_count': article.get('location_count', 0),
+                        'primary_location': article.get('primary_location'),
+                        'ner_processed_at': datetime.utcnow()
+                    }}
+                )
+                if result.modified_count > 0:
+                    updated_count += 1
+        
+        # Get statistics
+        stats = ner_processor.get_location_statistics(processed_articles)
+        
+        return jsonify({
+            'success': True,
+            'processed_count': updated_count,
+            'total_articles': len(articles),
+            'statistics': stats
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/locations')
+def locations_view():
+    """Display articles with their extracted location information."""
+    try:
+        # Get articles that have been processed with NER
+        articles = list(mongo.db.news_by_location.find({'extracted_locations': {'$exists': True}}))
+        
+        # Convert ObjectIds to strings
+        for article in articles:
+            article['_id'] = str(article['_id'])
+        
+        # Get statistics
+        stats = ner_processor.get_location_statistics(articles)
+        
+        return render_template('locations.html', 
+                             articles=articles,
+                             stats=stats)
+    except Exception as e:
+        print(f"Error fetching articles with locations: {e}")
+        return render_template('locations.html', 
+                             articles=[],
+                             stats={})
 
 if __name__=="__main__":
     app.run(debug=True)

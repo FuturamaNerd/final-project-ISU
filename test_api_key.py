@@ -5,7 +5,7 @@ Test script to check NewsAPI key status and usage.
 
 import requests
 import json
-from config import NEWS_API_KEY
+from utility.config import NEWS_API_KEY
 
 def test_api_key():
     """Test the NewsAPI key with a simple request."""

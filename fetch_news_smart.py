@@ -8,6 +8,9 @@ from flask import Flask
 from flask_pymongo import PyMongo
 import time
 import random
+import json
+import os
+from utility.config import NEWS_API_KEY
 
 # Set up Flask app for MongoDB connection
 app = Flask(__name__)
@@ -22,6 +25,24 @@ MAJOR_COUNTRIES = {
     'Africa': ['ZA', 'EG', 'NG', 'KE', 'GH', 'MA', 'TN', 'DZ', 'ET'],
     'Oceania': ['AU', 'NZ', 'FJ', 'PG', 'NC', 'VU', 'SB', 'TO', 'WS']
 }
+
+def load_country_coordinates():
+    """Load country coordinates from JSON file."""
+    json_path = os.path.join(os.path.dirname(__file__), 'utility', 'countryCoordinates.json')
+    try:
+        with open(json_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Warning: Country coordinates file not found at {json_path}")
+        return {}
+    except json.JSONDecodeError:
+        print(f"Warning: Invalid JSON in country coordinates file")
+        return {}
+
+def get_country_coordinates(country_code):
+    """Get coordinates for a country code."""
+    coordinates = load_country_coordinates()
+    return coordinates.get(country_code, [39.8283, -98.5795])  # Default to US center
 
 def fetch_continent_news_smart(continent: str, mongo_db, count: int = 9, delay: float = 1.0):
     """
@@ -79,7 +100,6 @@ def fetch_continent_news_smart(continent: str, mongo_db, count: int = 9, delay: 
 
 def fetch_single_country_news(country: str, continent: str):
     """Fetch a single article from a specific country."""
-    from config import NEWS_API_KEY
     import requests
     
     url = "https://newsapi.org/v2/top-headlines"
@@ -98,6 +118,14 @@ def fetch_single_country_news(country: str, continent: str):
                 article = data['articles'][0]
                 article['source_country'] = country
                 article['continent'] = continent
+                
+                # Add country coordinates for map positioning
+                coordinates = get_country_coordinates(country)
+                article['coordinates'] = coordinates
+                article['location_precision'] = 'country'
+                article['data_source'] = 'newsapi'
+                
+                print(f"    📍 Added coordinates for {country}: {coordinates}")
                 return article
         elif response.status_code == 429:
             print(f"  ⏳ Rate limited for {country}, waiting...")

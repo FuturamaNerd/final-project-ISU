@@ -62,3 +62,59 @@ h2 {
 .bg-oceania .card {
   background-color: rgba(249, 225, 72, 0.5); /* inverted: yellow */
 }
+
+/* Map legend styles */
+.map-legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 12px;
+}
+
+.map-legend h6 {
+    margin: 0 0 8px 0;
+    font-weight: bold;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-marker {
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+    border-radius: 50%;
+}
+
+.legend-marker.gdelt {
+    background-color: #28a745;
+    border: 2px solid white;
+}
+
+.legend-marker.newsapi {
+    background-color: #007bff;
+    border: 2px solid #0056b3;
+    opacity: 0.6;
+}
+
+/* GDELT marker styles */
+.gdelt-marker {
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+/* NewsAPI circle marker styles */
+.newsapi-circle {
+    background-color: #007bff;
+    border: 2px solid #0056b3;
+    opacity: 0.6;
+}

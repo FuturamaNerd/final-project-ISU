@@ -5,13 +5,31 @@ import os
 from typing import Dict, List, Optional
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from config import NEWS_API_KEY
+from utility.config import NEWS_API_KEY
 
 def load_country_mapping() -> Dict[str, str]:
     """Load the country code to continent mapping from JSON file."""
     json_path = os.path.join(os.path.dirname(__file__), 'countryToContinent.json')
     with open(json_path, 'r') as f:
         return json.load(f)
+
+def load_country_coordinates() -> Dict[str, List[float]]:
+    """Load country coordinates from JSON file."""
+    json_path = os.path.join(os.path.dirname(__file__), 'countryCoordinates.json')
+    try:
+        with open(json_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Warning: Country coordinates file not found at {json_path}")
+        return {}
+    except json.JSONDecodeError:
+        print(f"Warning: Invalid JSON in country coordinates file")
+        return {}
+
+def get_country_coordinates(country_code: str) -> List[float]:
+    """Get coordinates for a country code."""
+    coordinates = load_country_coordinates()
+    return coordinates.get(country_code, [39.8283, -98.5795])  # Default to US center
 
 def get_countries_by_continent(continent: str) -> List[str]:
     """Get all country codes for a given continent."""
@@ -68,6 +86,13 @@ def fetch_random_country_news(continent: str) -> Optional[Dict]:
             # Add country info to the article data
             article['source_country'] = selected_country
             article['continent'] = continent
+            
+            # Add country coordinates for map positioning
+            coordinates = get_country_coordinates(selected_country)
+            article['coordinates'] = coordinates
+            article['location_precision'] = 'country'
+            article['data_source'] = 'newsapi'
+            
             return article
         else:
             print(f"No articles found for country: {selected_country}")
@@ -123,6 +148,13 @@ def fetch_multiple_continent_news(continent: str, count: int = 9) -> List[Dict]:
                 article = data['articles'][0]
                 article['source_country'] = country
                 article['continent'] = continent
+                
+                # Add country coordinates for map positioning
+                coordinates = get_country_coordinates(country)
+                article['coordinates'] = coordinates
+                article['location_precision'] = 'country'
+                article['data_source'] = 'newsapi'
+                
                 articles.append(article)
                 print(f"✅ Fetched article from {country} ({len(articles)}/{count})")
             else:
