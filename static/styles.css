@@ -36,7 +36,7 @@ h2 {
 }
 
 .bg-americas .card {
-  background-color: rgba(38, 72, 250, 0.5); /* inverted: cyan/blue */
+  background-color: rgba(105, 38, 250, 0.848); /* inverted: cyan/blue */
 }
 
 .bg-asia h2 {
@@ -44,7 +44,7 @@ h2 {
 }
 
 .bg-asia .card {
-  background-color: rgba(240, 240, 240, 0.5); /* inverted: light gray */
+  background-color: rgba(221, 58, 156, 0.851); /* inverted: light gray */
 }
 
 .bg-europe h2 {
@@ -52,7 +52,7 @@ h2 {
 }
 
 .bg-europe .card {
-  background-color: rgba(72, 95, 249, 0.5); /* inverted: purplish blue */
+  background-color: rgba(72, 96, 249, 0.826); /* inverted: purplish blue */
 }
 
 .bg-oceania > h2 {

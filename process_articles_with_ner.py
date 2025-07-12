@@ -56,26 +56,28 @@ def process_existing_articles():
         
         print(f"✅ Successfully updated {updated_count}/{len(articles)} articles")
         
-        # Get statistics
+        # Get basic statistics
         print("\n📊 LOCATION STATISTICS:")
         print("-" * 30)
-        stats = ner_processor.get_location_statistics(processed_articles)
         
-        print(f"Total articles: {stats['total_articles']}")
-        print(f"Articles with locations: {stats['articles_with_locations']}")
-        print(f"Total locations found: {stats['total_locations_found']}")
+        total_articles = len(processed_articles)
+        articles_with_locations = sum(1 for article in processed_articles if article.get('location_count', 0) > 0)
+        total_locations = sum(article.get('location_count', 0) for article in processed_articles)
+        
+        print(f"Total articles: {total_articles}")
+        print(f"Articles with locations: {articles_with_locations}")
+        print(f"Total locations found: {total_locations}")
+        
+        # Count location types
+        location_types = {}
+        for article in processed_articles:
+            for loc in article.get('extracted_locations', []):
+                label = loc.get('label', 'Unknown')
+                location_types[label] = location_types.get(label, 0) + 1
         
         print(f"\nLocation types found:")
-        for loc_type, count in stats['location_types'].items():
+        for loc_type, count in location_types.items():
             print(f"  {loc_type}: {count}")
-        
-        print(f"\nMost common locations:")
-        for location, count in stats['most_common_locations'].items():
-            print(f"  {location}: {count}")
-        
-        print(f"\nArticles by continent:")
-        for continent, count in stats['articles_by_continent'].items():
-            print(f"  {continent}: {count}")
         
         # Show sample processed articles
         print("\n📰 SAMPLE PROCESSED ARTICLES:")
@@ -115,7 +117,14 @@ def search_articles_by_location(location_name: str):
                 processed_articles.append(article)
         
         # Find matching articles
-        matching_articles = ner_processor.find_articles_by_location(processed_articles, location_name)
+        matching_articles = []
+        location_lower = location_name.lower()
+        for article in processed_articles:
+            locations = article.get('extracted_locations', [])
+            for loc in locations:
+                if location_lower in loc['text'].lower() or loc['text'].lower() in location_lower:
+                    matching_articles.append(article)
+                    break
         
         print(f"Found {len(matching_articles)} articles mentioning '{location_name}'")
         

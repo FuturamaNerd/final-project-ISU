@@ -83,8 +83,10 @@ class NewsEvent {
      * Get truncated title
      */
     getTruncatedTitle(maxLength = 60) {
-        if (this.title.length <= maxLength) return this.title;
-        return this.title.substring(0, maxLength) + '...';
+        // Use scraped title if available (for GDELT events)
+        const titleToUse = this.scrapedTitle || this.title;
+        if (titleToUse.length <= maxLength) return titleToUse;
+        return titleToUse.substring(0, maxLength) + '...';
     }
     
     /**
@@ -413,6 +415,18 @@ class GDELTEvent extends NewsEvent {
         this.numSources = data.num_sources || 0;
         this.numArticles = data.num_articles || 0;
         this.avgTone = data.avg_tone || 0;
+        
+        // Translation-specific properties
+        this.translatedTitle = data.translated_title || null;
+        this.translatedContent = data.translated_content || null;
+        this.sourceLanguage = data.source_language || null;
+        this.targetLanguage = data.target_language || null;
+        this.translationConfidence = data.translation_confidence || null;
+        this.sentimentScore = data.sentiment_score || null;
+        this.sentimentMagnitude = data.sentiment_magnitude || null;
+        
+        // Scraped title (highest priority)
+        this.scrapedTitle = data.scraped_title || null;
         this.actor1Type1Code = data.actor1_type1_code || null;
         this.actor1Type2Code = data.actor1_type2_code || null;
         this.actor1Type3Code = data.actor1_type3_code || null;
@@ -649,7 +663,8 @@ class GDELTEvent extends NewsEvent {
      * Create enhanced popup content with GDELT data
      */
     createPopupContent() {
-        const title = this.getTruncatedTitle(50);
+        // Use scraped title if available, then translated title, otherwise fall back to generated title
+        const title = this.scrapedTitle || this.translatedTitle || this.getTruncatedTitle(50);
         const source = this.source.name;
         const country = this.sourceCountry;
         const timeAgo = this.getTimeAgo();
@@ -670,6 +685,19 @@ class GDELTEvent extends NewsEvent {
         
         if (this.actor2Name) {
             gdeltInfo += `<small><strong>Actor 2:</strong> ${this.actor2Name} (${this.actor2Country || 'Unknown'})</small><br>`;
+        }
+        
+        // Add translation and sentiment info if available
+        if (this.sourceLanguage) {
+            gdeltInfo += `<small><strong>Language:</strong> ${this.sourceLanguage}</small><br>`;
+        }
+        
+        if (this.sentimentScore !== null && this.sentimentScore !== undefined) {
+            gdeltInfo += `<small><strong>Sentiment:</strong> ${this.sentimentScore.toFixed(2)}</small><br>`;
+        }
+        
+        if (this.numSources) {
+            gdeltInfo += `<small><strong>Sources:</strong> ${this.numSources}</small><br>`;
         }
         
         return `
@@ -800,11 +828,20 @@ class GDELTEvent extends NewsEvent {
                 id: 'gdelt',
                 url: 'https://www.gdeltproject.org/'
             },
+            // Translation fields
+            translatedTitle: sqliteData.translated_title || null,
+            translatedContent: sqliteData.translated_content || null,
+            sourceLanguage: sqliteData.source_language || null,
+            targetLanguage: sqliteData.target_language || null,
+            translationConfidence: sqliteData.translation_confidence || null,
+            sentimentScore: sqliteData.sentiment_score || null,
+            sentimentMagnitude: sqliteData.sentiment_magnitude || null,
+            scrapedTitle: sqliteData.scraped_title || null,
             // Set default values for missing properties
-            numMentions: 0,
-            numSources: 0,
+            numMentions: sqliteData.num_mentions || 0,
+            numSources: sqliteData.num_sources || 0,
             numArticles: 0,
-            avgTone: 0,
+            avgTone: sqliteData.avg_tone || 0,
             quadClass: null,
             eventBaseCode: null,
             eventRootCode: null
@@ -1079,7 +1116,23 @@ const EventUtils = {
     }
 };
 
-// Export for use in other modules (if using modules)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { NewsEvent, NewsAPIEvent, GDELTEvent, EventUtils };
+function addNewsApiLayer(map, newsData) {
+    newsData.forEach(article => {
+        // Only add if both latitude and longitude are present
+        if (article.latitude != null && article.longitude != null) {
+            // Use a larger, transparent circle for NewsAPI data
+            L.circle([article.latitude, article.longitude], {
+                color: 'blue',
+                fillColor: 'blue',
+                fillOpacity: 0.25,
+                radius: 20000, // Adjust for your map's scale (meters)
+                weight: 2
+            }).addTo(map)
+            .bindPopup(`<b>${article.title}</b><br>${article.location_name || ''}`);
+        }
+    });
 }
+
+
+// Export for use in other modules (ES6 modules)
+export { NewsEvent, NewsAPIEvent, GDELTEvent, EventUtils, addNewsApiLayer };

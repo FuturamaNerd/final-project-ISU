@@ -1,112 +1,85 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>News World - Global News Map</title>
     <meta charset="utf-8" />
-    <!--leaflet-->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin=""
-    />
-    <!--bootstrap-->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" 
-integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-  <link rel="stylesheet" 
-  href="{{ url_for('static', filename='styles.css') }}">
-  </head>
- 
-  <div id="map-wrapper">
-  <div id="map">
-    <div class="map-legend">
-      <h6>Data Sources</h6>
-      <div class="legend-item">
-        <div class="legend-marker gdelt"></div>
-        <span>GDELT (Exact)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-marker newsapi"></div>
-        <span>NewsAPI (NER)</span>
-      </div>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- Your custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="bg-primary">
+    <div id="map-wrapper">
+        <div id="map"></div>
     </div>
-  </div>
-    </div>
-  <body class="bg-primary">
-   <div class="container mt-4"> 
+    <div class="container mt-4"> 
     
     <div class="d-flex flex-wrap justify-content-around gap-4">
     <!-- Region 1 -->
     <div class="text-center bg-americas">
-      <h2 class="text-white">Americas</h2>
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/americas'">Americas</h2>
       <div class="card">
         <div class="card-body">
-          {% if real_story and real_story.source_country in ['US', 'CA', 'BR', 'MX', 'AR', 'CL', 'CO', 'PE', 'VE'] %}
-          <h5 class="card-title">{{ real_story.title[:60] }}{% if real_story.title|length > 60 %}...{% endif %}</h5>
-          <p class="card-text">{{ real_story.description[:100] }}{% if real_story.description|length > 100 %}...{% endif %}</p>
-          <small class="text-muted">{{ real_story.source.name if real_story.source else 'Unknown' }} | {{ real_story.source_country }}</small>
-          {% if real_story.url %}
-          <br><a href="{{ real_story.url }}" target="_blank" class="btn btn-sm btn-primary mt-2">Read More</a>
-          {% endif %}
-          {% else %}
-          <h5 class="card-title">Title</h5>
-          <p class="card-text">Snippet</p>
-          {% endif %}
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from the Americas</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Americas')">I'm Feeling Lucky</button>
         </div>
       </div>
     </div>
 
     <!-- Region 2 -->
     <div class="text-center bg-africa">
-      <h2 class="text-white">Africa</h2>
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/africa'">Africa</h2>
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Title</h5>
-          <p class="card-text">Snippet</p>
-            {# add link later #}
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Africa</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Africa')">I'm Feeling Lucky</button>
         </div>
       </div>
     </div>
 
     <!-- Region 3 -->
     <div class="text-center bg-asia">
-      <h2 class="text-white">Asia</h2>
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/asia'">Asia</h2>
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Title</h5>
-          <p class="card-text">Snippet</p>
-            {# add link later #}
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Asia</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Asia')">I'm Feeling Lucky</button>
         </div>
       </div>
     </div>
 
     <!-- Region 4 -->
     <div class="text-center bg-europe">
-      <h2 class="text-white">Europe</h2>
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/europe'">Europe</h2>
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Title</h5>
-          <p class="card-text">Snippet</p>
-            {# add link later #}
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Europe</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Europe')">I'm Feeling Lucky</button>
         </div>
       </div>
     </div>
 
     <!-- Region 5 -->
     <div class="text-center bg-oceania">
-      <h2 class="text-white">Oceania</h2>
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/oceania'">Oceania</h2>
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Title</h5>
-          <p class="card-text">Snippet</p>
-          {# add link later #}
-          
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Oceania</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Oceania')">I'm Feeling Lucky</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-    <script
+<!--   <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""
     ></script>
@@ -277,9 +250,14 @@ integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuH
             .catch(error => {
                 console.error('Error loading events:', error);
             });
-    </script>
-   <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </script> -->
+<!-- foreign libraries -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
  integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
-  </body>
+ <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- local modules -->
+ <script type="module" src="/static/mapInit.js"></script>
+ <script type="module" src="/static/script.js"></script>
+ <script type="module" src="/static/luckyStories.js"></script>
+   </body>
 </html>

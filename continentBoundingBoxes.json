@@ -1,0 +1,33 @@
+{
+    "Africa": {
+  "lat_min": -35,
+  "lat_max": 28,
+  "lon_min": -18,
+  "lon_max": 35
+    },
+    "Asia": {
+      "lat_min": 1,
+      "lat_max": 81,
+      "lon_min": 26,
+      "lon_max": 180
+    },
+    "Europe": {
+      "lat_min": 35,
+      "lat_max": 72,
+      "lon_min": -25,
+      "lon_max": 60
+    },
+    "Americas": {
+      "lat_min": -56,
+      "lat_max": 83,
+      "lon_min": -168,
+      "lon_max": -34
+    },
+    "Australia (Oceania)": {
+      "lat_min": -50,
+      "lat_max": -10,
+      "lon_min": 110,
+      "lon_max": 180
+    }
+  }
+  

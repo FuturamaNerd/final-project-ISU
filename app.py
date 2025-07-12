@@ -121,24 +121,194 @@ def about():
 
 @app.route('/continent/<continent>')
 def continent_news(continent):
-    """Render news for a specific continent using dummy data from MongoDB."""
+    """Render news for a specific continent using coordinate-based filtering."""
     try:
-        # Get news stories for the specified continent from dummy_news collection
-        news_stories = list(mongo.db.dummy_news.find({'continent': continent}))
+        import json
         
-        # Debug: Print the raw data to see what we're getting
-        if news_stories:
-            print(f"DEBUG: Found {len(news_stories)} stories for {continent}")
-            print(f"DEBUG: First story raw data:")
-            first_story = news_stories[0]
-            for key, value in first_story.items():
-                print(f"  {key}: {value}")
-        else:
-            print(f"DEBUG: No stories found for {continent}")
+        # Load continent bounding boxes
+        try:
+            with open('continentBoundingBoxes.json', 'r', encoding='utf-8') as f:
+                continent_boxes = json.load(f)
+        except FileNotFoundError:
+            print(f"❌ continentBoundingBoxes.json not found")
+            return render_template('[continent]-news.html', 
+                                 continent=continent, 
+                                 news_stories=[])
+        except json.JSONDecodeError as e:
+            print(f"❌ Error parsing continentBoundingBoxes.json: {e}")
+            return render_template('[continent]-news.html', 
+                                 continent=continent, 
+                                 news_stories=[])
+        except Exception as e:
+            print(f"❌ Error loading continentBoundingBoxes.json: {e}")
+            return render_template('[continent]-news.html', 
+                                 continent=continent, 
+                                 news_stories=[])
         
-        # Convert MongoDB ObjectId to string for JSON serialization
-        for story in news_stories:
-            story['_id'] = str(story['_id'])
+        # Map continent names to match the JSON file
+        continent_mapping = {
+            'Oceania': 'Australia (Oceania)',
+            'Africa': 'Africa',
+            'Asia': 'Asia', 
+            'Europe': 'Europe',
+            'Americas': 'Americas'
+        }
+        
+        target_continent = continent_mapping.get(continent, continent)
+        if target_continent not in continent_boxes:
+            print(f"❌ Continent '{continent}' not found in bounding boxes")
+            return render_template('[continent]-news.html', 
+                                 continent=continent, 
+                                 news_stories=[])
+        
+        bounds = continent_boxes[target_continent]
+        print(f"🔍 Filtering for {continent} using bounds: {bounds}")
+        
+        news_stories = []
+        
+        # Get NewsAPI events from MongoDB using coordinate filtering
+        try:
+            # Get all NewsAPI articles with coordinates
+            all_newsapi = list(mongo.db.news_by_location.find({
+                '$and': [
+                    {'latitude': {'$exists': True, '$ne': None}},
+                    {'longitude': {'$exists': True, '$ne': None}}
+                ]
+            }))
+            
+            print(f"📊 Found {len(all_newsapi)} NewsAPI articles with coordinates")
+            
+            # Filter by continent using coordinates
+            continent_newsapi = []
+            for story in all_newsapi:
+                lat = story.get('latitude')
+                lon = story.get('longitude')
+                
+                if lat is not None and lon is not None:
+                    # Check if coordinates fall within continent bounds
+                    if (bounds['lat_min'] <= lat <= bounds['lat_max'] and 
+                        bounds['lon_min'] <= lon <= bounds['lon_max']):
+                        continent_newsapi.append(story)
+                        print(f"  ✅ {continent}: {lat}, {lon} - {story.get('title', 'No title')[:50]}...")
+                    else:
+                        print(f"  ❌ {continent}: {lat}, {lon} - OUT OF BOUNDS")
+            
+            # Take up to 9 NewsAPI stories
+            continent_newsapi = continent_newsapi[:9]
+            
+            # Convert to template format
+            for story in continent_newsapi:
+                story['_id'] = str(story['_id'])
+                story['data_source'] = 'newsapi'
+                
+                # Debug: Print the actual structure of a NewsAPI story
+                if len(continent_newsapi) == 1:  # Only print for first story to avoid spam
+                    print(f"🔍 DEBUG NewsAPI story structure:")
+                    for key, value in story.items():
+                        if key != '_id':
+                            print(f"  {key}: {str(value)[:100]}...")
+                
+                # Ensure proper structure for template - NewsAPI data is at root level
+                story['source'] = {
+                    'title': story.get('title', 'No Title'),
+                    'description': story.get('description', 'No description'),
+                    'url': story.get('url', ''),
+                    'urlToImage': story.get('urlToImage', ''),
+                    'author': story.get('author', ''),
+                    'publishedAt': story.get('publishedAt', '')
+                }
+                news_stories.append(story)
+            
+            print(f"✅ Found {len(continent_newsapi)} NewsAPI stories for {continent}")
+                
+        except Exception as e:
+            print(f"Error accessing MongoDB for {continent}: {e}")
+        
+        # Get GDELT events from SQLite using coordinate filtering
+        try:
+            conn = sqlite3.connect('gdelt_events.db')
+            c = conn.cursor()
+            
+            # Query GDELT events with coordinates
+            gdelt_query = '''
+                SELECT event_id, date, event_code, goldstein, actor1_name, actor1_country, 
+                       actor2_name, actor2_country, latitude, longitude, location_name, 
+                       continent, source_url, translated_title, translated_content, 
+                       source_language, target_language, translation_confidence, 
+                       sentiment_score, sentiment_magnitude, num_mentions, num_sources, 
+                       avg_tone, event_root_code, event_base_code, quad_class
+                FROM gdelt_events 
+                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            '''
+            
+            all_gdelt = c.execute(gdelt_query).fetchall()
+            conn.close()
+            
+            # Filter GDELT events by continent using coordinates
+            continent_gdelt = []
+            for story in all_gdelt:
+                lat = story[8]  # latitude
+                lon = story[9]  # longitude
+                
+                if lat is not None and lon is not None:
+                    # Check if coordinates fall within continent bounds
+                    if (bounds['lat_min'] <= lat <= bounds['lat_max'] and 
+                        bounds['lon_min'] <= lon <= bounds['lon_max']):
+                        continent_gdelt.append(story)
+            
+            # Take up to 9 GDELT stories
+            continent_gdelt = continent_gdelt[:9]
+            
+            # Convert GDELT data to template format
+            for story in continent_gdelt:
+                gdelt_story = {
+                    'event_id': story[0],
+                    'date': story[1],
+                    'event_code': story[2],
+                    'goldstein': story[3],
+                    'actor1_name': story[4],
+                    'actor1_country': story[5],
+                    'actor2_name': story[6],
+                    'actor2_country': story[7],
+                    'latitude': story[8],
+                    'longitude': story[9],
+                    'location_name': story[10],
+                    'continent': story[11],
+                    'source_url': story[12],
+                    'translated_title': story[13],
+                    'translated_content': story[14],
+                    'source_language': story[15],
+                    'target_language': story[16],
+                    'translation_confidence': story[17],
+                    'sentiment_score': story[18],
+                    'sentiment_magnitude': story[19],
+                    'num_mentions': story[20],
+                    'num_sources': story[21],
+                    'avg_tone': story[22],
+                    'event_root_code': story[23],
+                    'event_base_code': story[24],
+                    'quad_class': story[25],
+                    'data_source': 'gdelt',
+                    'source': {
+                        'title': story[13] if story[13] else f'GDELT Event {story[0]}',
+                        'description': story[14][:200] + '...' if story[14] and len(story[14]) > 200 else (story[14] or 'No description available'),
+                        'url': story[12] or '#',
+                        'urlToImage': '',
+                        'author': f'GDELT - {story[4]}' if story[4] else 'GDELT',
+                        'publishedAt': story[1] if story[1] else ''
+                    }
+                }
+                news_stories.append(gdelt_story)
+            
+            print(f"✅ Found {len(continent_gdelt)} GDELT stories for {continent}")
+                
+        except Exception as e:
+            print(f"Error accessing SQLite for {continent}: {e}")
+        
+        # Limit to 9 stories total (or all if less than 9)
+        news_stories = news_stories[:9]
+        
+        print(f"🎯 Total stories for {continent}: {len(news_stories)}")
         
         return render_template('[continent]-news.html', 
                              continent=continent, 
@@ -221,7 +391,14 @@ def search_articles_by_location():
                 processed_articles.append(article)
         
         # Find matching articles
-        matching_articles = ner_processor.find_articles_by_location(processed_articles, location)
+        matching_articles = []
+        location_lower = location.lower()
+        for article in processed_articles:
+            locations = article.get('extracted_locations', [])
+            for loc in locations:
+                if location_lower in loc['text'].lower() or loc['text'].lower() in location_lower:
+                    matching_articles.append(article)
+                    break
         
         # Convert ObjectIds to strings
         for article in matching_articles:
@@ -273,8 +450,16 @@ def process_articles_with_ner():
                 if result.modified_count > 0:
                     updated_count += 1
         
-        # Get statistics
-        stats = ner_processor.get_location_statistics(processed_articles)
+        # Calculate basic statistics
+        total_articles = len(processed_articles)
+        articles_with_locations = sum(1 for article in processed_articles if article.get('location_count', 0) > 0)
+        total_locations = sum(article.get('location_count', 0) for article in processed_articles)
+        
+        stats = {
+            'total_articles': total_articles,
+            'articles_with_locations': articles_with_locations,
+            'total_locations_found': total_locations
+        }
         
         return jsonify({
             'success': True,
@@ -299,8 +484,16 @@ def locations_view():
         for article in articles:
             article['_id'] = str(article['_id'])
         
-        # Get statistics
-        stats = ner_processor.get_location_statistics(articles)
+        # Calculate basic statistics
+        total_articles = len(articles)
+        articles_with_locations = sum(1 for article in articles if article.get('location_count', 0) > 0)
+        total_locations = sum(article.get('location_count', 0) for article in articles)
+        
+        stats = {
+            'total_articles': total_articles,
+            'articles_with_locations': articles_with_locations,
+            'total_locations_found': total_locations
+        }
         
         return render_template('locations.html', 
                              articles=articles,
