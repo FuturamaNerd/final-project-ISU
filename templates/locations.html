@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Articles with Locations - News World{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🌍 Articles with Extracted Locations</h1>
+            <p class="lead">Articles processed with Named Entity Recognition (NER) to identify locations mentioned in the content.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Location Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.total_articles }}</h4>
+                                <p class="text-muted">Total Articles</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.articles_with_locations }}</h4>
+                                <p class="text-muted">Articles with Locations</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.total_locations_found }}</h4>
+                                <p class="text-muted">Total Locations Found</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ "%.1f"|format(stats.articles_with_locations / stats.total_articles * 100 if stats.total_articles > 0 else 0) }}%</h4>
+                                <p class="text-muted">Coverage Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Most Common Locations -->
+    {% if stats.most_common_locations %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🏙️ Most Common Locations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for location, count in stats.most_common_locations.items() %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-capitalize">{{ location }}</span>
+                            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🌍 Articles by Continent</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for continent, count in stats.articles_by_continent.items() %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ continent }}</span>
+                            <span class="badge bg-secondary rounded-pill">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Articles Section -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">📰 Articles with Extracted Locations</h3>
+            
+            {% if articles %}
+                {% for article in articles %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title">
+                                    <a href="{{ article.url }}" target="_blank" class="text-decoration-none">
+                                        {{ article.title }}
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted">{{ article.description }}</p>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <strong>Source:</strong> {{ article.source.name if article.source else 'Unknown' }} | 
+                                        <strong>Country:</strong> {{ article.source_country }} | 
+                                        <strong>Continent:</strong> {{ article.continent }} |
+                                        <strong>Published:</strong> {{ article.publishedAt[:10] if article.publishedAt else 'Unknown' }}
+                                    </small>
+                                </div>
+
+                                <!-- Primary Location -->
+                                {% if article.primary_location %}
+                                <div class="mb-2">
+                                    <span class="badge bg-primary me-2">📍 Primary Location</span>
+                                    <strong>{{ article.primary_location }}</strong>
+                                </div>
+                                {% endif %}
+
+                                <!-- All Extracted Locations -->
+                                {% if article.extracted_locations %}
+                                <div class="mb-2">
+                                    <span class="badge bg-info me-2">🌍 All Locations ({{ article.location_count }})</span>
+                                    {% for location in article.extracted_locations %}
+                                    <span class="badge bg-light text-dark me-1" title="{{ location.description }}">
+                                        {{ location.text }}
+                                        <small class="text-muted">({{ location.label }})</small>
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                {% if article.urlToImage %}
+                                <img src="{{ article.urlToImage }}" class="img-fluid rounded" alt="Article image" 
+                                     style="max-height: 150px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                     style="height: 150px;">
+                                    <span class="text-muted">No image available</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <h5>No articles with location data found</h5>
+                    <p>Articles need to be processed with Named Entity Recognition (NER) first.</p>
+                    <a href="/api/ner/process" class="btn btn-primary">Process Articles with NER</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔍 Search Articles by Location</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="locationSearch" class="form-label">Location Name</label>
+                    <input type="text" class="form-control" id="locationSearch" 
+                           placeholder="Enter location name (e.g., London, New York, Tokyo)">
+                </div>
+                <div id="searchResults"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="searchArticles()">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<div class="position-fixed bottom-0 end-0 p-3">
+    <button class="btn btn-primary rounded-circle" style="width: 60px; height: 60px;" 
+            data-bs-toggle="modal" data-bs-target="#searchModal" title="Search by Location">
+        🔍
+    </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function searchArticles() {
+    const location = document.getElementById('locationSearch').value.trim();
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (!location) {
+        resultsDiv.innerHTML = '<div class="alert alert-warning">Please enter a location name.</div>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Searching...</p></div>';
+    
+    fetch(`/api/articles/search?location=${encodeURIComponent(location)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displaySearchResults(data.articles, location);
+            } else {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+}
+
+function displaySearchResults(articles, searchTerm) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (articles.length === 0) {
+        resultsDiv.innerHTML = `<div class="alert alert-info">No articles found mentioning "${searchTerm}".</div>`;
+        return;
+    }
+    
+    let html = `<h6>Found ${articles.length} articles mentioning "${searchTerm}":</h6>`;
+    
+    articles.forEach(article => {
+        html += `
+        <div class="card mb-2">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <a href="${article.url}" target="_blank">${article.title}</a>
+                </h6>
+                <p class="card-text small text-muted">${article.description || 'No description'}</p>
+                <small class="text-muted">
+                    Source: ${article.source?.name || 'Unknown'} | 
+                    Country: ${article.source_country || 'Unknown'}
+                </small>
+            </div>
+        </div>
+        `;
+    });
+    
+    resultsDiv.innerHTML = html;
+}
+</script>
+{% endblock %} 

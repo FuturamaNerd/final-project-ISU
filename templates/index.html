@@ -1,57 +1,263 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>sandbox</title>
+<head>
+    <title>News World - Global News Map</title>
     <meta charset="utf-8" />
-    <!--leaflet-->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin=""
-    />
-    <!--bootstrap-->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" 
-integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-  <link rel="stylesheet" 
-  href="{{ url_for('static', filename='styles.css') }}">
-  </head>
- 
-  <div id="map-wrapper">
-  <div id="map"></div>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- Your custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="bg-primary">
+    <div id="map-wrapper">
+        <div id="map"></div>
     </div>
-  <body class="bg-primary">
-   <div class="container mt-4"> 
+    <div class="container mt-4"> 
+    
     <div class="d-flex flex-wrap justify-content-around gap-4">
-      {% for story in news_stories %}
-      <div class="text-center {{ get_continent_style(story.continent) }}">
-        <h2 class="text-white">{{ story.continent }}</h2>
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">{{ story.title }}</h5>
-            <p class="card-text">{{ story.country }}</p>
-            <a href="{{ story.url }}" class="btn btn-primary" target="_blank">Read More</a>
-          </div>
+    <!-- Region 1 -->
+    <div class="text-center bg-americas">
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/americas'">Americas</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from the Americas</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Americas')">I'm Feeling Lucky</button>
         </div>
       </div>
-      {% endfor %}
     </div>
+
+    <!-- Region 2 -->
+    <div class="text-center bg-africa">
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/africa'">Africa</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Africa</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Africa')">I'm Feeling Lucky</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 3 -->
+    <div class="text-center bg-asia">
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/asia'">Asia</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Asia</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Asia')">I'm Feeling Lucky</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 4 -->
+    <div class="text-center bg-europe">
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/europe'">Europe</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Europe</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Europe')">I'm Feeling Lucky</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region 5 -->
+    <div class="text-center bg-oceania">
+      <h2 class="text-white" style="cursor: pointer; text-decoration: underline;" onclick="window.location.href='/oceania'">Oceania</h2>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Discover Random Stories</h5>
+          <p class="card-text">Click below to find a random news story from Oceania</p>
+          <button class="btn btn-primary mt-2" onclick="window.luckyStories.getLuckyStory('Oceania')">I'm Feeling Lucky</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-    <script
+<!--   <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""
     ></script>
-    <script>
-       var map = L.map('map').setView([20, 0], 1); //world map
+    <script src="{{ url_for('static', filename='news_event.js') }}?v=8"></script>
+        <script>
+        // Test if classes are loaded
+        console.log('Testing if classes are available:');
+        console.log('NewsEvent:', typeof NewsEvent);
+        console.log('NewsAPIEvent:', typeof NewsAPIEvent);
+        console.log('GDELTEvent:', typeof GDELTEvent);
+        console.log('EventUtils:', typeof EventUtils);
+        
+        if (typeof GDELTEvent === 'undefined') {
+            console.error('GDELTEvent class is not loaded!');
+        } else {
+            console.log('✅ GDELTEvent class is loaded');
+        }
+        if (typeof NewsAPIEvent === 'undefined') {
+            console.error('NewsAPIEvent class is not loaded!');
+        } else {
+            console.log('✅ NewsAPIEvent class is loaded');
+        }
+        
+        // Initialize map only if not already initialized
+        if (typeof map === 'undefined') {
+            var map = L.map('map').setView([20, 0], 1); //world map
+        }
 
         L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=CL4gV9lIzFFudXxk1UwL', {
             tileSize: 512,
             zoomOffset: -1,
             attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> contributors'
         }).addTo(map);
-    </script>
-   <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+        // Add a test marker to verify map is working
+        console.log('Adding test marker to verify map functionality...');
+        const testMarker = L.marker([40.7128, -74.0060]).addTo(map);
+        testMarker.bindPopup('Test marker - New York City');
+        console.log('✅ Test marker added successfully');
+
+        // Add marker for real news story
+        {% if real_story and country_coords %}
+        var newsData = {
+            title: {{ real_story.title | tojson | safe }},
+            country: {{ real_story.source_country | tojson | safe }},
+            source: {{ (real_story.source.name if real_story.source else 'Unknown') | tojson | safe }},
+            url: {{ real_story.url | tojson | safe }},
+            coords: [{{ country_coords[0] }}, {{ country_coords[1] }}]
+        };
+        
+        var marker = L.marker(newsData.coords).addTo(map);
+        marker.bindPopup(`
+            <strong>${newsData.title}</strong><br>
+            <small>${newsData.country} - ${newsData.source}</small><br>
+            <a href="${newsData.url}" target="_blank">Read Article</a>
+        `);
+        {% endif %}
+
+        // Load and display all events
+        console.log('Starting to fetch events from API...');
+        fetch('/api/events/all')
+            .then(response => {
+                console.log('API Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('API Response:', data);
+                if (data.success) {
+                    console.log(`Processing ${data.events.length} events...`);
+                    let markersAdded = 0;
+                    
+                    data.events.forEach((eventData, index) => {
+                        console.log(`Processing event ${index + 1}:`, eventData);
+                        
+                        // Create event object using our classes
+                        let event;
+                        try {
+                            if (eventData.data_source === 'gdelt') {
+                                event = GDELTEvent.fromSQLiteData(eventData);
+                            } else {
+                                event = new NewsAPIEvent(eventData);
+                            }
+                            console.log(`Created ${event.dataSource} event:`, event);
+                        } catch (error) {
+                            console.error(`Error creating event ${index + 1}:`, error);
+                            return;
+                        }
+                        
+                        // Create marker based on data source and precision
+                        const coords = event.getMapCoordinates();
+                        console.log(`Event ${index + 1} coordinates:`, coords);
+                        
+                        // Enhanced debugging for GDELT events
+                        if (eventData.data_source === 'gdelt') {
+                            console.log(`GDELT Event ${index + 1}:`, {
+                                raw_lat: eventData.latitude,
+                                raw_lng: eventData.longitude,
+                                raw_lat_type: typeof eventData.latitude,
+                                raw_lng_type: typeof eventData.longitude,
+                                calculated_coords: coords,
+                                event_exact_coords: event.exactCoordinates,
+                                event_source_country: event.sourceCountry,
+                                is_exact: coords && coords.length === 2 && 
+                                         coords[0] !== 39.8283 && coords[1] !== -98.5795,
+                                is_us_fallback: coords && coords.length === 2 && 
+                                              coords[0] === 39.8283 && coords[1] === -98.5795
+                            });
+                        }
+                        
+                        if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                            let marker;
+                            
+                            try {
+                                console.log(`Creating marker for ${event.dataSource} event at [${coords[0]}, ${coords[1]}]`);
+                                
+                                if (event.dataSource === 'gdelt') {
+                                    // GDELT: Use standard marker (exact coordinates)
+                                    marker = L.marker(coords, {
+                                        icon: L.divIcon({
+                                            className: 'gdelt-marker',
+                                            html: '<div style="background-color: #28a745; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                                            iconSize: [12, 12],
+                                            iconAnchor: [6, 6]
+                                        })
+                                    });
+                                    console.log('Created GDELT marker:', marker);
+                                } else {
+                                    // NewsAPI: Use circle marker (less precise, NER-based)
+                                    marker = L.circleMarker(coords, {
+                                        radius: 8,
+                                        fillColor: '#007bff',
+                                        color: '#0056b3',
+                                        weight: 2,
+                                        opacity: 0.8,
+                                        fillOpacity: 0.6
+                                    });
+                                    console.log('Created NewsAPI marker:', marker);
+                                }
+                                
+                                console.log('Adding marker to map...');
+                                marker.addTo(map);
+                                markersAdded++;
+                                
+                                // Create popup content
+                                const popupContent = event.createPopupContent();
+                                console.log(`Popup content for ${event.dataSource} event ${index + 1}:`, popupContent);
+                                marker.bindPopup(popupContent);
+                                
+                                // Test popup functionality
+                                marker.on('click', function() {
+                                    console.log(`Clicked on ${event.dataSource} marker ${index + 1}`);
+                                });
+                                
+                                console.log(`✅ Successfully added marker ${markersAdded} for ${event.dataSource} event at [${coords[0]}, ${coords[1]}]`);
+                            } catch (error) {
+                                console.error(`❌ Error adding marker for event ${index + 1}:`, error);
+                            }
+                        } else {
+                            console.log(`⚠️ Skipping event ${index + 1} - invalid coordinates:`, coords);
+                        }
+                    });
+                    
+                    console.log(`Successfully loaded ${markersAdded} markers on the map out of ${data.count} events`);
+                } else {
+                    console.error('Failed to load events:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading events:', error);
+            });
+    </script> -->
+<!-- foreign libraries -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
  integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
-  </body>
+ <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- local modules -->
+ <script type="module" src="/static/mapInit.js"></script>
+ <script type="module" src="/static/script.js"></script>
+ <script type="module" src="/static/luckyStories.js"></script>
+   </body>
 </html>

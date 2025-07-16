@@ -1,0 +1,113 @@
+
+
+/* Africa Theme - Green and purple */
+.continent-africa {
+  background: linear-gradient(135deg, #418b13, #27d21e, #59cd3f);
+  color: #eaace9;
+}
+
+.continent-africa .card {
+  background: rgba(85, 34, 92, 0.85);
+  border: 1px solid #d21e99;
+  backdrop-filter: blur(10px);
+}
+
+.continent-africa .nav-pills .nav-link.active {
+  background-color: #8b1375;
+}
+
+/* Asia Theme - BlackPink */
+.continent-asia {
+  background: linear-gradient(135deg, #221719, #4b363a, #836663);
+  color: #4A4A4A;
+}
+
+.continent-asia .card {
+  background: rgba(245, 139, 139, 0.85);
+  border: 2px solid #FF69B4;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+}
+
+.continent-asia .nav-pills .nav-link.active {
+  background-color: #FF69B4;
+}
+
+/* Europe Theme - Classic Blue & White */
+.continent-europe {
+  background: linear-gradient(135deg, #1E3A8A, #3B82F6, #60A5FA);
+  color: white;
+}
+
+.continent-europe .card {
+  background: rgba(255, 221, 1, 0.85);
+  border: 2px solid #b49f01;
+  color: #1E3A8A;
+}
+
+.continent-europe .nav-pills .nav-link.active {
+  background-color: #b49f01;
+}
+
+/* Americas Theme - Red, White & Blue */
+.continent-americas {
+  background: linear-gradient(135deg, #DC2626, #EF4444, #F87171);
+  color: white;
+}
+
+.continent-americas .card {
+  background: rgba(106, 67, 234, 0.85);
+  border: 2px solid #3f06d0;
+  color: #1e2b3d;
+}
+
+.continent-americas .nav-pills .nav-link.active {
+  background-color: #090673;
+}
+
+/* Oceania Theme - Ocean Blues & Greens */
+.continent-oceania {
+  background: linear-gradient(135deg, #160f76, #1a14b8, #4e2dd4);
+  color: white;
+}
+
+.continent-oceania .card {
+  background: rgba(21, 147, 164, 0.85);
+  border: 2px solid #073935;
+  color: white;
+}
+
+.continent-oceania .nav-pills .nav-link.active {
+  background-color: #073935;
+  ;
+}
+
+/* Common styles */
+.continent-themed {
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+.continent-themed .card {
+  transition: transform 0.3s ease;
+}
+
+.continent-themed .card:hover {
+  transform: translateY(-5px);
+}
+
+/* Additional theme enhancements */
+.continent-themed h1 {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+}
+
+.continent-themed .alert {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.continent-themed .badge {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+} 
